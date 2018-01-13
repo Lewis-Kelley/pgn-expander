@@ -39,6 +39,7 @@ data CastleSide = QueenSide | KingSide
   deriving (Eq, Show)
 
 data GameState = GameState Turn [[ColoredPiece]] PieceMap
+  deriving (Show)
 
 type Turn = Color
 type PieceMap = Map ColoredPiece [Cell]
