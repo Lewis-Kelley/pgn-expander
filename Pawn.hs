@@ -32,7 +32,7 @@ validSingleMove state color (originCol, originRow) (destCol, destRow)
                      && pieceColorAtPosIs state (destCol, destRow) Nothing
 
 -- TODO Add En Passant Support
-validTakingMove :: GameState -> Color -> (Int, Int) -> (Int, Int) -> Bool
+validTakingMove :: GameState -> Color -> Cell -> Cell -> Bool
 validTakingMove state color (originCol, originRow) (destCol, destRow)
   | color == White = abs (originCol - destCol) == 1
                      && destRow - originRow == 1
