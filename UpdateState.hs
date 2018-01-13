@@ -43,10 +43,10 @@ castleUpdate state@(GameState White _ _) KingSide =
   (ColoredPiece White Rook) (7, 0) (5, 0)
 castleUpdate state@(GameState Black _ _) QueenSide =
   movePiece (movePiece state (ColoredPiece Black King) (4, 7) (2, 7))
-  (ColoredPiece White Rook) (0, 7) (3, 7)
+  (ColoredPiece Black Rook) (0, 7) (3, 7)
 castleUpdate state@(GameState Black _ _) KingSide =
   movePiece (movePiece state (ColoredPiece Black King) (4, 7) (6, 7))
-  (ColoredPiece White Rook) (7, 7) (5, 7)
+  (ColoredPiece Black Rook) (7, 7) (5, 7)
 
 
 movePiece :: GameState -> ColoredPiece -> Cell -> Cell -> GameState
