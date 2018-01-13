@@ -76,7 +76,7 @@ followMove :: GameState -> SemiMove -> (Move, GameState)
 followMove state (SemiBasicMove piece origin
                    destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
-      originOptions = getValidPieceOrigins state piece destination
+      originOptions = getValidPieceOrigins state coloredPiece destination
       fullOrigin = choosePieceOrigin origin originOptions
       move = BasicMove coloredPiece fullOrigin destination promotion checkState
   in
@@ -84,7 +84,7 @@ followMove state (SemiBasicMove piece origin
 followMove state (SemiTakingMove piece origin
                    destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
-      originOptions = getValidPieceOrigins state piece destination
+      originOptions = getValidPieceOrigins state coloredPiece destination
       fullOrigin = choosePieceOrigin origin originOptions
       takenPiece = getPieceAt state destination
       move = (TakingMove coloredPiece takenPiece fullOrigin
@@ -99,10 +99,9 @@ followMove state (SemiCastleMove castleSide checkState) =
 getColoredPiece :: GameState -> Piece -> ColoredPiece
 getColoredPiece (GameState turn _ _) piece = ColoredPiece turn piece
 
-getValidPieceOrigins :: GameState -> Piece -> Cell -> [Cell]
-getValidPieceOrigins state@(GameState turn _ _) piece destination =
-  let coloredPiece = ColoredPiece turn piece
-      pieceLocations = getPieceLocations state coloredPiece
+getValidPieceOrigins :: GameState -> ColoredPiece -> Cell -> [Cell]
+getValidPieceOrigins state coloredPiece destination =
+  let pieceLocations = getPieceLocations state coloredPiece
   in filter (validMoveFrom state coloredPiece destination) pieceLocations
 
 getPieceLocations :: GameState -> ColoredPiece -> [Cell]
