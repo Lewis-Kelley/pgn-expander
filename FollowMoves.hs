@@ -116,13 +116,13 @@ validMoveFrom state (ColoredPiece color piece) destination origin =
   if not $ validDestination state color destination then False
   else
     case piece of
-      Pawn -> validPawnMove state color destination origin
-      Rook -> validRookMove state color destination origin
-      Knight -> validKnightMove state color destination origin
-      Bishop -> validBishopMove state color destination origin
-      Queen -> validRookMove state color destination origin
-               || validBishopMove state color destination origin
-      King -> validKingMove state color destination origin
+      Pawn -> validPawnMove state color origin destination
+      Rook -> validRookMove state color origin destination
+      Knight -> validKnightMove state color origin destination
+      Bishop -> validBishopMove state color origin destination
+      Queen -> validRookMove state color origin destination
+               || validBishopMove state color origin destination
+      King -> validKingMove state color origin destination
 
 choosePieceOrigin :: SemiCell -> [Cell] -> Cell
 choosePieceOrigin (col, row) origins =
@@ -142,7 +142,7 @@ choosePieceOrigin (col, row) origins =
             (filter (\ (_, origRow) ->
                         origRow == actRow)
              origins)
-          Nothing -> error "No origin found"
+          Nothing -> error $ "No origin found from" ++ (show origins)
 
 getPieceAt :: GameState -> Cell -> ColoredPiece
 getPieceAt (GameState _ board _) (col, row) = ((board !! col) !! row)
