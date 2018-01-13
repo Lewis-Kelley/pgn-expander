@@ -51,15 +51,20 @@ makeCol col row1 row2 =
   in
     map (\ index -> (col, base + index)) [1..dist]
 
-  let dist = abs(row1 - row2) - 1
-      baseRow = min row1 row2
-      baseCol = min col1 col2
-  in
-    map (\ index -> (baseCol + index, baseRow + index)) [1..dist]
-
-definesCol :: (Int, Int) -> (Int, Int) -> Bool
 makeDiagonal :: Int -> Int -> Int -> Int -> [Cell]
 makeDiagonal col1 row1 col2 row2
+  | (row1 - row2) * (col1 - col2) > 0 =
+    let dist = abs(row1 - row2) - 1
+        baseRow = min row1 row2
+        baseCol = min col1 col2
+    in
+      map (\ index -> (baseCol + index, baseRow + index)) [1..dist]
+  | otherwise =
+    let dist = abs(row1 - row2) - 1
+        baseRow = min row1 row2
+        baseCol = max col1 col2
+    in
+      map (\ index -> (baseCol - index, baseRow + index)) [1..dist]
 
 definesCol :: Cell -> Cell -> Bool
 definesCol (pt1Col, pt1Row) (pt2Col, pt2Row) =
@@ -81,18 +86,18 @@ moveInBoard board piece origin destination =
 
 setInBoard :: [[ColoredPiece]] -> Cell -> ColoredPiece -> [[ColoredPiece]]
 setInBoard board (col, row) newVal =
-  foldr (\ colData rest ->
-           let colNumber = 7 - length rest
-           in
-             if colNumber == col
-             then (setInColumn colData row newVal : rest)
-             else (colData : rest)) [] board
-
-setInColumn :: [ColoredPiece] -> Int -> ColoredPiece -> [ColoredPiece]
-setInColumn column row newVal =
-  foldr (\ rowElem rest ->
+  foldr (\ rowData rest ->
            let rowNumber = 7 - length rest
            in
              if rowNumber == row
+             then (setInRow rowData col newVal : rest)
+             else (rowData : rest)) [] board
+
+setInRow :: [ColoredPiece] -> Int -> ColoredPiece -> [ColoredPiece]
+setInRow rowData col newVal =
+  foldr (\ rowElem rest ->
+           let colNumber = 7 - length rest
+           in
+             if colNumber == col
              then (newVal : rest)
-             else (rowElem : rest)) [] column
+             else (rowElem : rest)) [] rowData
