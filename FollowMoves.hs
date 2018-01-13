@@ -86,7 +86,7 @@ followMove state (SemiTakingMove piece origin
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
       fullOrigin = choosePieceOrigin origin originOptions
-      takenPiece = pieceAtPos state destination
+      takenPiece = getTakenPiece state destination
       move = (TakingMove coloredPiece takenPiece fullOrigin
               destination promotion checkState)
   in
@@ -143,3 +143,15 @@ choosePieceOrigin (col, row) origins =
                         origRow == actRow)
              origins)
           Nothing -> error $ "No origin found from" ++ (show origins)
+
+getTakenPiece :: GameState -> Cell -> ColoredPiece
+getTakenPiece state cell =
+  case pieceAtPos state cell of
+    NoPiece -> getEnPassantPiece state
+    coloredPiece -> coloredPiece
+
+-- We'll just assume that it's working correctly.
+-- `validMoveFrom` should have already checked everything by now.
+getEnPassantPiece :: GameState -> ColoredPiece
+getEnPassantPiece (GameState White _ _) = (ColoredPiece Black Pawn)
+getEnPassantPiece (GameState Black _ _) = (ColoredPiece White Pawn)

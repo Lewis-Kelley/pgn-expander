@@ -55,9 +55,20 @@ movePiece (GameState turn board pieceMap) piece origin destination =
     (moveInPieceMap pieceMap piece origin destination))
 
 removePiece :: GameState -> Cell -> ColoredPiece -> GameState
-removePiece (GameState turn board pieceMap) cell piece =
-  (GameState turn (setInBoard board cell piece)
-    (removeFromPieceMap pieceMap piece cell))
+removePiece state@(GameState turn board pieceMap) cell piece
+  | pieceAtPos state cell == NoPiece =
+      removeEnPassantPiece state cell piece
+  | otherwise =
+      (GameState turn (setInBoard board cell NoPiece)
+       (removeFromPieceMap pieceMap piece cell))
+
+removeEnPassantPiece :: GameState -> Cell -> ColoredPiece -> GameState
+removeEnPassantPiece state@(GameState turn _ _) (col, row) piece =
+  let newRow = if turn == White
+               then row - 1
+               else row + 1
+  in
+    removePiece state (col, newRow) piece
 
 moveInPieceMap :: PieceMap -> ColoredPiece -> Cell -> Cell -> PieceMap
 moveInPieceMap pieceMap piece origin destination =
