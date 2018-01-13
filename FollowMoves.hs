@@ -86,7 +86,7 @@ followMove state (SemiTakingMove piece origin
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
       fullOrigin = choosePieceOrigin origin originOptions
-      takenPiece = getPieceAt state destination
+      takenPiece = pieceAtPos state destination
       move = (TakingMove coloredPiece takenPiece fullOrigin
               destination promotion checkState)
   in
@@ -143,6 +143,3 @@ choosePieceOrigin (col, row) origins =
                         origRow == actRow)
              origins)
           Nothing -> error $ "No origin found from" ++ (show origins)
-
-getPieceAt :: GameState -> Cell -> ColoredPiece
-getPieceAt (GameState _ board _) (col, row) = ((board !! col) !! row)
