@@ -28,8 +28,8 @@ clearLine state pt1 pt2 =
 
 pointsBetween :: Cell -> Cell -> Maybe [Cell]
 pointsBetween pt1@(pt1Col, pt1Row) pt2@(pt2Col, pt2Row)
-  | definesRow pt1 pt2 = Just $ makeRow pt1Col pt1Row pt2Row
-  | definesCol pt1 pt2 = Just $ makeCol pt1Row pt1Col pt2Col
+  | definesRow pt1 pt2 = Just $ makeRow pt1Row pt1Col pt2Col
+  | definesCol pt1 pt2 = Just $ makeCol pt1Col pt1Row pt2Row
   | definesDiagonal pt1 pt2 = Just $ makeDiagonal pt1Col pt1Row pt2Col pt2Row
   | otherwise = Nothing
 
