@@ -1,3 +1,5 @@
+import Data.Text (unpack)
+
 import Comments
 import FileHandling
 import FollowMoves
@@ -9,7 +11,8 @@ import Util
 main :: IO ()
 main = do
   contents <- getPgnContents
-  let splitContents = lines contents
+  let stringContents = unpack contents
+  let splitContents = lines stringContents
   writeGames $ map runGame $ splitGames splitContents
 
 splitGames :: [String] -> [[String]]
@@ -30,4 +33,3 @@ runGame contents =
       (\ cleanedBody ->
          let parsedMoves = parseMoves cleanedBody
          in Just (keys, followMoves id initialGameState parsedMoves)))
-

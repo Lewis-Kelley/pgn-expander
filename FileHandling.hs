@@ -1,13 +1,19 @@
 module FileHandling where
 
+import Data.Text (Text)
+import qualified Data.Text.IO as T (hGetContents)
+import System.IO
+
 import OutputFormatting
 import Types
 
-getPgnContents :: IO String
+getPgnContents :: IO Text
 getPgnContents = do
   putStrLn "Enter the name of the file to parse: "
   fileName <- getLine
-  readFile fileName
+  fileHandle <- openFile fileName ReadMode
+  hSetEncoding fileHandle latin1
+  T.hGetContents fileHandle
 
 writeGames :: [Maybe ([String], [Move])] -> IO ()
 writeGames = writeEgn . foldGames
