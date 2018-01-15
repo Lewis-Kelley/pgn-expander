@@ -39,9 +39,10 @@ getCastle _ = Nothing
 
 makeCastle :: CastleSide -> String -> Maybe SemiMove
 makeCastle castleSide rest =
-  case stringToCheckState rest of
-    Nothing -> Nothing
-    Just checkState -> Just $ SemiCastleMove castleSide checkState
+  let (checkState, afterCheckState) = stringToCheckState rest in
+    if removeSANSuffixes afterCheckState /= ""
+    then Nothing
+    else Just $ SemiCastleMove castleSide checkState
 
 getTaking :: String -> Maybe SemiMove
 getTaking moveString =
@@ -74,10 +75,10 @@ finishGetMove moveBuilder piece origin moveString =
       case stringToPromotion afterDestination of
         Nothing -> Nothing
         Just (promotion, afterPromotion) ->
-          case stringToCheckState afterPromotion of
-            Nothing -> Nothing
-            Just checkState ->
-              Just $ moveBuilder piece origin destination promotion checkState
+          let (checkState, afterCheck) = stringToCheckState afterPromotion in
+            if removeSANSuffixes afterCheck /= ""
+            then Nothing
+            else Just $ moveBuilder piece origin destination promotion checkState
 
 stringToPromotion :: String -> Maybe (Promotion, String)
 stringToPromotion ('=' : pieceChar : rest)
@@ -85,8 +86,16 @@ stringToPromotion ('=' : pieceChar : rest)
   | otherwise = Nothing
 stringToPromotion rest = Just (Nothing, rest)
 
-stringToCheckState :: String -> Maybe CheckState
-stringToCheckState "" = Just NoCheck
-stringToCheckState "+" = Just Check
-stringToCheckState "#" = Just CheckMate
-stringToCheckState _ = Nothing
+stringToCheckState :: String -> (CheckState, String)
+stringToCheckState ('+' : rest) = (Check, rest)
+stringToCheckState ('#' : rest) = (CheckMate, rest)
+stringToCheckState rest = (NoCheck, rest)
+
+removeSANSuffixes :: String -> String
+removeSANSuffixes ('?' : '?' : rest) = rest
+removeSANSuffixes ('!' : '?' : rest) = rest
+removeSANSuffixes ('?' : '!' : rest) = rest
+removeSANSuffixes ('!' : '!' : rest) = rest
+removeSANSuffixes ('!' : rest) = rest
+removeSANSuffixes ('?' : rest) = rest
+removeSANSuffixes rest = rest
