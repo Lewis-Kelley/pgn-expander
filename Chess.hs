@@ -13,7 +13,7 @@ main = do
   contents <- getPgnContents
   let stringContents = unpack contents
   let splitContents = lines stringContents
-  writeGames $ map runGame $ splitGames splitContents
+  writeGames $ map runGame $ cleanGames $ splitGames splitContents
 
 splitGames :: [String] -> [[String]]
 splitGames = splitWhen isScore
@@ -24,6 +24,9 @@ isScore "0-1" = True
 isScore "1/2-1/2" = True
 isScore "*" = True
 isScore _ = False
+
+cleanGames :: [[String]] -> [[String]]
+cleanGames = map $ dropWhile (\ gameLine -> gameLine == "")
 
 runGame :: [String] -> Maybe ([String], [Move])
 runGame contents =
