@@ -27,7 +27,12 @@ foldGames games =
                   Just (keys, moves) ->
                     foldGame keys $ formatMoves moves) games
   in
-    unlines gameStrings
+    foldGameStrings gameStrings
+
+foldGameStrings :: [String] -> String
+foldGameStrings =
+  foldr (\ gameString rest ->
+            gameString ++ "======\n" ++ rest) ""
 
 foldGame :: [String] -> [String] -> String
 foldGame keys moves = (foldKeys keys) ++ "\n" ++ (foldMoves moves)
