@@ -73,28 +73,41 @@ followMoves continuation state semiMoves =
       followMoves nextContinuation nextState $ tail semiMoves
 
 followMove :: GameState -> SemiMove -> (Move, GameState)
-followMove state (SemiBasicMove piece origin
-                   destination promotion checkState) =
+followMove state move@(SemiBasicMove piece origin
+                       destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
-      fullOrigin = choosePieceOrigin origin originOptions
-      move = BasicMove coloredPiece fullOrigin destination promotion checkState
   in
-    (move, updateState state move)
-followMove state (SemiTakingMove piece origin
-                   destination promotion checkState) =
+    case choosePieceOrigin origin originOptions of
+      Nothing -> showError state move originOptions
+      Just fullOrigin ->
+        let fullmove =
+              BasicMove coloredPiece fullOrigin destination promotion checkState
+        in
+          (fullmove, updateState state fullmove)
+followMove state move@(SemiTakingMove piece origin
+                       destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
-      fullOrigin = choosePieceOrigin origin originOptions
       takenPiece = getTakenPiece state destination
-      move = (TakingMove coloredPiece takenPiece fullOrigin
-              destination promotion checkState)
   in
-    (move, updateState state move)
+    case choosePieceOrigin origin originOptions of
+      Nothing -> showError state move originOptions
+      Just fullOrigin ->
+        let fullmove =
+              (TakingMove coloredPiece takenPiece fullOrigin
+                destination promotion checkState)
+        in
+          (fullmove, updateState state fullmove)
 followMove state (SemiCastleMove castleSide checkState) =
   let move = (CastleMove castleSide checkState)
   in
     (move, updateState state move)
+
+showError :: GameState -> SemiMove -> [Cell] -> a
+showError state move originOptions =
+  error $ "No origin found from" ++ (show originOptions)
+  ++ " at move " ++ (show move) ++ " during state " ++ (show state)
 
 getColoredPiece :: GameState -> Piece -> ColoredPiece
 getColoredPiece (GameState turn _ _) piece = ColoredPiece turn piece
@@ -124,10 +137,10 @@ validMoveFrom state (ColoredPiece color piece) destination origin =
                || validBishopMove state color origin destination
       King -> validKingMove state color origin destination
 
-choosePieceOrigin :: SemiCell -> [Cell] -> Cell
+choosePieceOrigin :: SemiCell -> [Cell] -> Maybe Cell
 choosePieceOrigin (col, row) origins =
   if length origins == 1
-  then head origins
+  then Just $ head origins
   else
     case col of
       Just actCol ->
@@ -142,7 +155,7 @@ choosePieceOrigin (col, row) origins =
             (filter (\ (_, origRow) ->
                         origRow == actRow)
              origins)
-          Nothing -> error $ "No origin found from" ++ (show origins)
+          Nothing -> Nothing
 
 getTakenPiece :: GameState -> Cell -> ColoredPiece
 getTakenPiece state cell =
