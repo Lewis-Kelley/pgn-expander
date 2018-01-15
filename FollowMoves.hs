@@ -63,46 +63,47 @@ emptyRow = fullRow NoPiece
 fullRow :: ColoredPiece -> [ColoredPiece]
 fullRow = replicate 8
 
-followMoves :: ([Move] -> [Move]) -> GameState -> [SemiMove] -> [Move]
+followMoves :: ([Move] -> [Move]) -> GameState -> [SemiMove] -> Maybe [Move]
 followMoves continuation state semiMoves =
   if null semiMoves
-  then continuation []
+  then Just $ continuation []
   else
-    let (fullMove, nextState) = followMove state $ head semiMoves
-        nextContinuation = attachContinuation continuation fullMove in
-      followMoves nextContinuation nextState $ tail semiMoves
+    (followMove state $ head semiMoves) >>=
+    (\ (fullMove, nextState) ->
+       let nextContinuation = attachContinuation continuation fullMove in
+         followMoves nextContinuation nextState $ tail semiMoves)
 
-followMove :: GameState -> SemiMove -> (Move, GameState)
-followMove state move@(SemiBasicMove piece origin
-                       destination promotion checkState) =
+followMove :: GameState -> SemiMove -> Maybe (Move, GameState)
+followMove state (SemiBasicMove piece origin
+                   destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
   in
-    case choosePieceOrigin origin originOptions of
-      Nothing -> showError state move originOptions
-      Just fullOrigin ->
+    choosePieceOrigin origin originOptions >>=
+    (\ fullOrigin ->
         let fullmove =
               BasicMove coloredPiece fullOrigin destination promotion checkState
         in
-          (fullmove, updateState state fullmove)
-followMove state move@(SemiTakingMove piece origin
-                       destination promotion checkState) =
+          Just (fullmove, updateState state fullmove))
+
+followMove state (SemiTakingMove piece origin
+                   destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
       takenPiece = getTakenPiece state destination
   in
-    case choosePieceOrigin origin originOptions of
-      Nothing -> showError state move originOptions
-      Just fullOrigin ->
-        let fullmove =
+    choosePieceOrigin origin originOptions >>=
+    (\ fullOrigin ->
+       let fullmove =
               (TakingMove coloredPiece takenPiece fullOrigin
                 destination promotion checkState)
         in
-          (fullmove, updateState state fullmove)
+          Just (fullmove, updateState state fullmove))
+
 followMove state (SemiCastleMove castleSide checkState) =
   let move = (CastleMove castleSide checkState)
   in
-    (move, updateState state move)
+    Just (move, updateState state move)
 
 showError :: GameState -> SemiMove -> [Cell] -> a
 showError state move originOptions =

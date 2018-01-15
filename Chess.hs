@@ -35,4 +35,5 @@ runGame contents =
       removeComments body >>=
       (\ cleanedBody ->
          let parsedMoves = parseMoves cleanedBody
-         in Just (keys, followMoves id initialGameState parsedMoves)))
+         in followMoves id initialGameState parsedMoves >>=
+            (\ moves -> Just (keys, moves))))
