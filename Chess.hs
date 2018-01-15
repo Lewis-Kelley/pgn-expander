@@ -3,6 +3,7 @@ import FileHandling
 import FollowMoves
 import Keyparser
 import ParseMoves
+import Types
 import Util
 
 main :: IO ()
