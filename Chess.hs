@@ -9,17 +9,16 @@ main :: IO ()
 main = do
   contents <- getPgnContents
   let splitContents = lines contents
-  case parseKeys splitContents of
-    Nothing -> failed
-    Just (keys, body) ->
-      case removeComments body of
-        Nothing -> failed
-        Just cleanedBody ->
-          let semiMoves = parseMoves cleanedBody
-              moves = followMoves id initialGameState semiMoves
-              formattedMoves = formatMoves moves
-          in
-            writeEgn keys formattedMoves
+  case runGame splitContents of
+    Nothing -> print "Failed"
+    Just (keys, moves) -> writeEgn keys $ formatMoves moves
 
-failed :: IO ()
-failed = print "Failed"
+runGame :: [String] -> Maybe ([String], [Move])
+runGame contents =
+  parseKeys contents >>=
+  (\ (keys, body) ->
+      removeComments body >>=
+      (\ cleanedBody ->
+         let parsedMoves = parseMoves cleanedBody
+         in Just (keys, followMoves id initialGameState parsedMoves)))
+
