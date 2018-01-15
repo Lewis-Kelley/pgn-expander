@@ -3,15 +3,23 @@ import FileHandling
 import FollowMoves
 import Keyparser
 import ParseMoves
-import OutputFormatting
+import Util
 
 main :: IO ()
 main = do
   contents <- getPgnContents
   let splitContents = lines contents
-  case runGame splitContents of
-    Nothing -> print "Failed"
-    Just (keys, moves) -> writeEgn keys $ formatMoves moves
+  writeGames $ map runGame $ splitGames splitContents
+
+splitGames :: [String] -> [[String]]
+splitGames = splitWhen isScore
+
+isScore :: String -> Bool
+isScore "1-0" = True
+isScore "0-1" = True
+isScore "1/2-1/2" = True
+isScore "*" = True
+isScore _ = False
 
 runGame :: [String] -> Maybe ([String], [Move])
 runGame contents =

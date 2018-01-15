@@ -15,3 +15,15 @@ notNothing x =
 
 attachContinuation :: ([a] -> [a]) -> a -> [a] -> [a]
 attachContinuation continuation newElem rest = continuation (newElem : rest)
+
+splitWhen :: Eq a => (a -> Bool) -> [a] -> [[a]]
+splitWhen _ [] = [[]]
+splitWhen test (first : rest)
+  | not $ test first =
+    let (firstSublist : restSublists) = splitWhen test rest
+    in ((first : firstSublist) : restSublists)
+  | otherwise =
+    let restSublists = splitWhen test rest
+    in if restSublists /= [[]]
+       then ([] : restSublists)
+       else [[]]
