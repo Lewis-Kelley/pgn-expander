@@ -23,16 +23,23 @@ foldGames games =
   let gameStrings =
         map (\ game ->
                 case game of
-                  Nothing -> ""
+                  Nothing -> Nothing
                   Just (keys, moves) ->
-                    foldGame keys $ formatMoves moves) games
+                    Just $ foldGame keys $ formatMoves moves) games
   in
     foldGameStrings gameStrings
 
-foldGameStrings :: [String] -> String
-foldGameStrings =
-  foldr (\ gameString rest ->
-            gameString ++ "======\n" ++ rest) ""
+foldGameStrings :: [Maybe String] -> String
+foldGameStrings gameStrings =
+  let (folded, totalErrors) =
+        foldr (\ game (rest, errCount) ->
+                  case game of
+                    Nothing -> (rest, errCount + 1)
+                    Just gameString ->
+                      (gameString ++ "======\n" ++ rest, errCount))
+        ("", 0) gameStrings
+  in
+    "ERRORS: " ++ (show totalErrors) ++ "\n\n" ++ folded
 
 foldGame :: [String] -> [String] -> String
 foldGame keys moves = (foldKeys keys) ++ "\n" ++ (foldMoves moves)
