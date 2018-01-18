@@ -1,57 +1,91 @@
 module FileHandling where
 
+import System.Environment
 import Data.Text (Text)
 import qualified Data.Text.IO as T (hGetContents)
 import System.IO
 
 import OutputFormatting
 import Types
+import Util
 
 getPgnContents :: IO Text
 getPgnContents = do
-  putStrLn "Enter the name of the file to parse: "
-  fileName <- getLine
-  fileHandle <- openFile fileName ReadMode
+  args <- getArgs
+  let baseFileName = getFileName args
+  fileHandle <- openFile (baseFileName ++ ".pgn") ReadMode
   hSetEncoding fileHandle latin1
   T.hGetContents fileHandle
 
-writeGames :: [Maybe ([String], [Move])] -> IO ()
-writeGames = writeEgn . foldGames
+getFileName :: [String] -> String
+getFileName args = do
+  if (length args) < 1
+    then error "Usage: ./Chess <input pgn without extension>"
+    else args !! 0
 
-foldGames :: [Maybe ([String], [Move])] -> String
+
+writeGames :: [Maybe (KeyValMap, [Move])] -> IO ()
+writeGames gameData = do
+  let (contents, gameErrorCounts) = foldGames gameData
+  writeCsv contents
+  -- writeGameCsv gameContents
+  -- writeKeyCsv keyContents
+  writeAccuracy gameErrorCounts
+
+foldGames :: [Maybe (KeyValMap, [Move])] -> (String, (Int, Int))
 foldGames games =
-  let gameStrings =
-        map (\ game ->
+  let gameIndices = 1 : map (+1) gameIndices
+      gameIds = map GameID gameIndices
+      rawKeyGameStrings =
+        zipWith (\ game gameId ->
                 case game of
                   Nothing -> Nothing
                   Just (keys, moves) ->
-                    Just $ foldGame keys $ formatMoves moves) games
+                    Just (formatKeys gameId keys
+                           ++ (foldMoves . formatMoves gameId) moves)) games gameIds
+      totalLength = length rawKeyGameStrings
+      gameStrings = unMaybeList rawKeyGameStrings
+      finalLength = length gameStrings
   in
-    foldGameStrings gameStrings
+    (foldGameStrings gameStrings, (totalLength, finalLength))
 
-foldGameStrings :: [Maybe String] -> String
-foldGameStrings gameStrings =
-  let (folded, totalErrors) =
-        foldr (\ game (rest, errCount) ->
-                  case game of
-                    Nothing -> (rest, errCount + 1)
-                    Just gameString ->
-                      (gameString ++ "======\n" ++ rest, errCount))
-        ("", 0) gameStrings
-  in
-    "ERRORS: " ++ (show totalErrors) ++ "\n\n" ++ folded
+foldGameStrings :: [String] -> String
+foldGameStrings = foldr (++) ""
 
-foldGame :: [String] -> [String] -> String
-foldGame keys moves = (foldKeys keys) ++ "\n" ++ (foldMoves moves)
-
-foldKeys :: [String] -> String
-foldKeys = unlines
+foldGameKeys :: [String] -> String
+foldGameKeys = foldr (++) ""
 
 foldMoves :: [String] -> String
-foldMoves = unlines
+foldMoves moveLines = unlines $ map (\ line -> "<" ++ line) moveLines
 
-writeEgn :: String -> IO ()
-writeEgn contents = do
-  putStrLn "Enter the name of the output file: "
-  fileName <- getLine
-  writeFile fileName contents
+writeCsv :: String -> IO ()
+writeCsv contents = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ ".csv") (gameHeader ++ keyValHeader ++ contents)
+
+gameHeader :: String
+gameHeader = ">GameID,Outcome,WhiteName,BlackName,WhiteElo,BlackElo,Date\n"
+
+keyValHeader :: String
+keyValHeader = "<GameID,Turn,Ply,MovedPiece,SourceCol,SourceRow,DestCol,DestRow,CapturedPiece,PromotionPiece,CheckState,CastleSide\n"
+
+writeGameCsv :: String -> IO ()
+writeGameCsv contents = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ ".csv") contents
+
+writeKeyCsv :: String -> IO ()
+writeKeyCsv contents = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ "_keys.csv") contents
+
+writeAccuracy :: (Int, Int) -> IO ()
+writeAccuracy (totalGames, goodGames) = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ "_info.txt")
+    ("Total: " ++ show totalGames
+     ++ "\nErrors: " ++ show (totalGames - goodGames))

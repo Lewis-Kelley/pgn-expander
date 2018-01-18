@@ -13,8 +13,10 @@ pieceColorAtPos state position =
     ColoredPiece color _ -> Just color
 
 pieceAtPos :: GameState -> Cell -> ColoredPiece
-pieceAtPos (GameState _ board _) (col, row) =
-  (board !! row) !! col
+pieceAtPos (GameState _ _ board _) (col, row) =
+  if row >= length board || col >= length (board !! row)
+  then error "pieceAtPos: Out of board dimensions."
+  else (board !! row) !! col
 
 validDestination :: GameState -> Color -> Cell -> Bool
 validDestination state color destination =

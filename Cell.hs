@@ -4,6 +4,8 @@ import Types
 import Util
 
 parseCell :: String -> Maybe (Cell, String)
+parseCell [] = Nothing
+parseCell (_ : []) = Nothing
 parseCell moveString =
   let colChar = (moveString !! 0)
       rowChar = (moveString !! 1) in

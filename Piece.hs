@@ -5,6 +5,7 @@ import Types
 import Util
 
 parsePiece :: String -> Maybe (Piece, String)
+parsePiece "" = Nothing
 parsePiece move =
   if not $ isUpper $ head move
   then Just (Pawn, move)

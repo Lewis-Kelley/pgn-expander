@@ -1,25 +1,32 @@
 module Keyparser where
 
+import Data.Map.Strict
+
 import Parsing
+import Types
 
-parseKeys :: [String] -> Maybe ([String], [String])
-parseKeys pgn =
-  if head pgn == "" then Just ([], tail pgn)
-  else case parseKey $ head pgn of
-    Nothing -> Nothing
-    Just key ->
-      case parseKeys $ tail pgn of
-        Nothing -> Nothing
-        Just (keys, body) -> Just ((key : keys), body)
+parseKeys :: [String] -> Maybe (KeyValMap, [String])
+parseKeys contents = do
+  (keyVals, rest) <- rawParseKeys contents
+  Just ((KeyValMap $ fromList keyVals), rest)
 
-parseKey :: String -> Maybe String
-parseKey keyLine =
-  case insideBrackets keyLine of
-    Nothing -> Nothing
-    Just cleanKeyLine ->
-      let key = getKey cleanKeyLine
-          value = insideQuotes cleanKeyLine
-      in getKeyValue key value
+rawParseKeys :: [String] -> Maybe ([(String, String)], [String])
+rawParseKeys [] = Just ([], [])
+rawParseKeys pgn =
+  if head pgn == ""
+  then Just ([], tail pgn)
+  else
+    do
+      keyVal <- parseKeyVal $ head pgn
+      (keyVals, body) <- rawParseKeys $ tail pgn
+      Just ((keyVal : keyVals), body)
+
+parseKeyVal :: String -> Maybe (String, String)
+parseKeyVal keyLine = do
+  cleanKeyLine <- insideBrackets keyLine
+  key <- getKey cleanKeyLine
+  value <- insideQuotes cleanKeyLine
+  Just (key, value)
 
 insideBrackets :: String -> Maybe String
 insideBrackets = insideChars '[' ']'

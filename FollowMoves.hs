@@ -13,7 +13,7 @@ import UpdateState
 
 initialGameState :: GameState
 initialGameState =
-  GameState White makeInitBoard makeInitPieceMap
+  GameState White (Ply 1) makeInitBoard makeInitPieceMap
 
 makeInitBoard :: [[ColoredPiece]]
 makeInitBoard =
@@ -78,11 +78,13 @@ followMove state (SemiBasicMove piece origin
                    destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
+      turn = getTurn state
+      ply = getPly state
   in
     choosePieceOrigin origin originOptions >>=
     (\ fullOrigin ->
         let fullmove =
-              BasicMove coloredPiece fullOrigin destination promotion checkState
+              BasicMove turn ply coloredPiece fullOrigin destination promotion checkState
         in
           Just (fullmove, updateState state fullmove))
 
@@ -91,17 +93,20 @@ followMove state (SemiTakingMove piece origin
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
       takenPiece = getTakenPiece state destination
+      turn = getTurn state
+      ply = getPly state
   in
     choosePieceOrigin origin originOptions >>=
     (\ fullOrigin ->
        let fullmove =
-              (TakingMove coloredPiece takenPiece fullOrigin
+              (TakingMove turn ply coloredPiece takenPiece fullOrigin
                 destination promotion checkState)
         in
           Just (fullmove, updateState state fullmove))
-
 followMove state (SemiCastleMove castleSide checkState) =
-  let move = (CastleMove castleSide checkState)
+  let turn = getTurn state
+      ply = getPly state
+      move = (CastleMove turn ply castleSide checkState)
   in
     Just (move, updateState state move)
 
@@ -111,7 +116,13 @@ showError state move originOptions =
   ++ " at move " ++ (show move) ++ " during state " ++ (show state)
 
 getColoredPiece :: GameState -> Piece -> ColoredPiece
-getColoredPiece (GameState turn _ _) piece = ColoredPiece turn piece
+getColoredPiece (GameState turn _ _ _) piece = ColoredPiece turn piece
+
+getTurn :: GameState -> Turn
+getTurn (GameState turn _ _ _) = turn
+
+getPly :: GameState -> Ply
+getPly (GameState _ ply _ _) = ply
 
 getValidPieceOrigins :: GameState -> ColoredPiece -> Cell -> [Cell]
 getValidPieceOrigins state coloredPiece destination =
@@ -119,7 +130,7 @@ getValidPieceOrigins state coloredPiece destination =
   in filter (validMoveFrom state coloredPiece destination) pieceLocations
 
 getPieceLocations :: GameState -> ColoredPiece -> [Cell]
-getPieceLocations (GameState _ _ pieceMap) piece =
+getPieceLocations (GameState _ _ _ pieceMap) piece =
   case Map.lookup piece pieceMap of
     Nothing -> []
     Just locations -> locations
@@ -167,5 +178,5 @@ getTakenPiece state cell =
 -- We'll just assume that it's working correctly.
 -- `validMoveFrom` should have already checked everything by now.
 getEnPassantPiece :: GameState -> ColoredPiece
-getEnPassantPiece (GameState White _ _) = (ColoredPiece Black Pawn)
-getEnPassantPiece (GameState Black _ _) = (ColoredPiece White Pawn)
+getEnPassantPiece (GameState White _ _ _) = (ColoredPiece Black Pawn)
+getEnPassantPiece (GameState Black _ _ _) = (ColoredPiece White Pawn)

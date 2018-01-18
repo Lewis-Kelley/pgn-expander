@@ -1,3 +1,4 @@
+import Control.Parallel.Strategies
 import Data.Text (unpack)
 
 import Comments
@@ -13,7 +14,8 @@ main = do
   contents <- getPgnContents
   let stringContents = unpack contents
   let splitContents = lines stringContents
-  writeGames $ map runGame $ cleanGames $ splitGames splitContents
+
+  writeGames $ parMap rseq runGame $ cleanGames $ splitGames splitContents
 
 splitGames :: [String] -> [[String]]
 splitGames = splitWhen isScore
@@ -28,7 +30,7 @@ isScore _ = False
 cleanGames :: [[String]] -> [[String]]
 cleanGames = map $ dropWhile (\ gameLine -> gameLine == "")
 
-runGame :: [String] -> Maybe ([String], [Move])
+runGame :: [String] -> Maybe (KeyValMap, [Move])
 runGame contents =
   parseKeys contents >>=
   (\ (keys, body) ->
