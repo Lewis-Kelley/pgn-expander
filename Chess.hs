@@ -13,7 +13,9 @@ main = do
   contents <- getPgnContents
   let stringContents = unpack contents
   let splitContents = lines stringContents
-  writeGames $ map runGame $ cleanGames $ splitGames splitContents
+  let gameIndices = 1 : map (+1) gameIndices
+  let gameIds = map GameID gameIndices
+  writeGames $ zipWith runGame gameIds $ cleanGames $ splitGames splitContents
 
 splitGames :: [String] -> [[String]]
 splitGames = splitWhen isScore
@@ -28,12 +30,12 @@ isScore _ = False
 cleanGames :: [[String]] -> [[String]]
 cleanGames = map $ dropWhile (\ gameLine -> gameLine == "")
 
-runGame :: [String] -> Maybe ([String], [Move])
-runGame contents =
+runGame :: GameID -> [String] -> Maybe ([String], [Move])
+runGame gameId contents =
   parseKeys contents >>=
   (\ (keys, body) ->
       removeComments body >>=
       (\ cleanedBody ->
          let parsedMoves = parseMoves cleanedBody
-         in followMoves id initialGameState parsedMoves >>=
+         in followMoves id gameId initialGameState parsedMoves >>=
             (\ moves -> Just (keys, moves))))

@@ -9,26 +9,26 @@ formatMoves :: [Move] -> [String]
 formatMoves = map formatMoveType
 
 formatMoveType :: Move -> String
-formatMoveType (BasicMove piece origin destination
+formatMoveType (BasicMove gameId piece origin destination
                  promotion checkState) =
-  formatMove piece origin destination Nothing
+  formatMove gameId piece origin destination Nothing
   promotion checkState Nothing
-formatMoveType (TakingMove piece takenPiece origin destination
+formatMoveType (TakingMove gameId piece takenPiece origin destination
                  promotion checkState) =
-  formatMove piece origin destination (Just takenPiece)
+  formatMove gameId piece origin destination (Just takenPiece)
   promotion checkState Nothing
 --FIXME Once we have turn information
-formatMoveType (CastleMove KingSide checkState) =
-  formatMove (ColoredPiece White King) (4, 0) (6, 0) Nothing
+formatMoveType (CastleMove gameId KingSide checkState) =
+  formatMove gameId (ColoredPiece White King) (4, 0) (6, 0) Nothing
   Nothing checkState (Just KingSide)
-formatMoveType (CastleMove QueenSide checkState) =
-  formatMove (ColoredPiece White King) (4, 0) (2, 0) Nothing
+formatMoveType (CastleMove gameId QueenSide checkState) =
+  formatMove gameId (ColoredPiece White King) (4, 0) (2, 0) Nothing
   Nothing checkState (Just QueenSide)
 
-formatMove :: ColoredPiece -> Cell -> Cell -> Maybe ColoredPiece
+formatMove :: GameID -> ColoredPiece -> Cell -> Cell -> Maybe ColoredPiece
   -> Promotion -> CheckState -> Maybe CastleSide -> String
-formatMove movedPiece origin destination takenPiece promotion checkState castleSide =
-  -- GameID
+formatMove gameId movedPiece origin destination takenPiece promotion checkState castleSide =
+  formatGameId gameId ++ "," ++
   -- Turn
   -- Ply
   formatColoredPiece movedPiece ++ "," ++
@@ -38,6 +38,9 @@ formatMove movedPiece origin destination takenPiece promotion checkState castleS
   formatPromotion promotion ++ "," ++
   formatCheckState checkState ++ "," ++
   formatCastleSide castleSide ++ "\n"
+
+formatGameId :: GameID -> String
+formatGameId (GameID idNum) = show idNum
 
 formatCell :: Cell -> String
 formatCell (row, col) =
