@@ -95,8 +95,8 @@ formatPromotion (Just piece) = formatPiece piece
 
 formatCheckState :: CheckState -> String
 formatCheckState NoCheck = ""
-formatCheckState Check = "check"
-formatCheckState CheckMate = "checkmate"
+formatCheckState Check = "+"
+formatCheckState CheckMate = "#"
 
 formatCastleSide :: Maybe CastleSide -> String
 formatCastleSide Nothing = ""
