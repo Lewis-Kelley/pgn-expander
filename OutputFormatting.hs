@@ -5,22 +5,22 @@ import Types
 -- |GameID|Outcome|White Name|Black Name|White ELO|Black ELO|Date|...
 -- |GameID|Turn|Ply No.|Piece|Source|Dest|CapturedPiece|PromotionPiece|CheckState|CastleSide|
 
-formatMoves :: [Move] -> [String]
-formatMoves = map formatMoveType
+formatMoves :: GameID -> [Move] -> [String]
+formatMoves gameId = map $ formatMoveType gameId
 
-formatMoveType :: Move -> String
-formatMoveType (BasicMove gameId turn ply piece origin destination
-                 promotion checkState) =
+formatMoveType :: GameID -> Move -> String
+formatMoveType gameId (BasicMove turn ply piece origin destination
+                        promotion checkState) =
   formatMove gameId turn ply piece origin destination Nothing
   promotion checkState Nothing
-formatMoveType (TakingMove gameId turn ply piece takenPiece origin destination
-                 promotion checkState) =
+formatMoveType gameId (TakingMove turn ply piece takenPiece origin destination
+                       promotion checkState) =
   formatMove gameId turn ply piece origin destination (Just takenPiece)
   promotion checkState Nothing
-formatMoveType (CastleMove gameId turn ply KingSide checkState) =
+formatMoveType gameId (CastleMove turn ply KingSide checkState) =
   formatMove gameId turn ply (ColoredPiece turn King) (4, 0) (6, 0) Nothing
   Nothing checkState (Just KingSide)
-formatMoveType (CastleMove gameId turn ply QueenSide checkState) =
+formatMoveType gameId (CastleMove turn ply QueenSide checkState) =
   formatMove gameId turn ply (ColoredPiece turn King) (4, 0) (2, 0) Nothing
   Nothing checkState (Just QueenSide)
 

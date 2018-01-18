@@ -34,13 +34,15 @@ writeGames gameData = do
 
 foldGames :: [Maybe ([String], [Move])] -> (String, (Int, Int))
 foldGames games =
-  let rawKeyGameStrings =
-        map (\ game ->
+  let gameIndices = 1 : map (+1) gameIndices
+      gameIds = map GameID gameIndices
+      rawKeyGameStrings =
+        zipWith (\ game gameId ->
                 case game of
                   Nothing -> Nothing
                   Just (keys, moves) ->
                     Just (foldKeys keys
-                           ++ (foldMoves . formatMoves) moves)) games
+                           ++ (foldMoves . formatMoves gameId) moves)) games gameIds
       totalLength = length rawKeyGameStrings
       gameStrings = unMaybeList rawKeyGameStrings
       finalLength = length gameStrings

@@ -1,3 +1,4 @@
+import Control.Parallel.Strategies
 import Data.Text (unpack)
 
 import Comments
@@ -13,9 +14,8 @@ main = do
   contents <- getPgnContents
   let stringContents = unpack contents
   let splitContents = lines stringContents
-  let gameIndices = 1 : map (+1) gameIndices
-  let gameIds = map GameID gameIndices
-  writeGames $ zipWith runGame gameIds $ cleanGames $ splitGames splitContents
+
+  writeGames $ parMap rseq runGame $ cleanGames $ splitGames splitContents
 
 splitGames :: [String] -> [[String]]
 splitGames = splitWhen isScore
@@ -30,12 +30,12 @@ isScore _ = False
 cleanGames :: [[String]] -> [[String]]
 cleanGames = map $ dropWhile (\ gameLine -> gameLine == "")
 
-runGame :: GameID -> [String] -> Maybe ([String], [Move])
-runGame gameId contents =
+runGame :: [String] -> Maybe ([String], [Move])
+runGame contents =
   parseKeys contents >>=
   (\ (keys, body) ->
       removeComments body >>=
       (\ cleanedBody ->
          let parsedMoves = parseMoves cleanedBody
-         in followMoves id gameId initialGameState parsedMoves >>=
+         in followMoves id initialGameState parsedMoves >>=
             (\ moves -> Just (keys, moves))))
