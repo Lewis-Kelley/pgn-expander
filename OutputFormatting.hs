@@ -1,9 +1,55 @@
 module OutputFormatting where
 
+import qualified Data.Map.Strict as Map
+
 import Types
 
 -- |GameID|Outcome|White Name|Black Name|White ELO|Black ELO|Date|...
 -- |GameID|Turn|Ply No.|Piece|Source|Dest|CapturedPiece|PromotionPiece|CheckState|CastleSide|
+
+formatKeys :: GameID -> KeyValMap -> String
+formatKeys gameId keyValMap =
+  ">" ++
+  formatGameId gameId ++ "," ++
+  formatResult keyValMap ++ "," ++
+  formatWhiteName keyValMap ++ "," ++
+  formatBlackName keyValMap ++ "," ++
+  formatWhiteElo keyValMap ++ "," ++
+  formatBlackElo keyValMap ++ "," ++
+  formatDate keyValMap ++ "\n"
+
+formatResult :: KeyValMap -> String
+formatResult keyValMap =
+  case lookupValue "Result" keyValMap of
+    "1-0" -> "w"
+    "0-1" -> "b"
+    "1/2-1/2" -> "s"
+    _ -> ""
+
+formatWhiteName :: KeyValMap -> String
+formatWhiteName = cleanForCsv . lookupValue "White"
+
+formatBlackName :: KeyValMap -> String
+formatBlackName = cleanForCsv . lookupValue "Black"
+
+formatWhiteElo :: KeyValMap -> String
+formatWhiteElo = cleanForCsv . lookupValue "WhiteElo"
+
+formatBlackElo :: KeyValMap -> String
+formatBlackElo = cleanForCsv . lookupValue "BlackElo"
+
+formatDate :: KeyValMap -> String
+formatDate = cleanForCsv . lookupValue "Date"
+
+lookupValue :: String -> KeyValMap -> String
+lookupValue key (KeyValMap keyValMap) =
+  case Map.lookup key keyValMap of
+    Nothing -> ""
+    Just result -> result
+
+cleanForCsv :: String -> String
+cleanForCsv "" = ""
+cleanForCsv str = "\"" ++ str ++ "\""
 
 formatMoves :: GameID -> [Move] -> [String]
 formatMoves gameId = map $ formatMoveType gameId

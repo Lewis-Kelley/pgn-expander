@@ -24,7 +24,7 @@ getFileName args = do
     else args !! 0
 
 
-writeGames :: [Maybe ([String], [Move])] -> IO ()
+writeGames :: [Maybe (KeyValMap, [Move])] -> IO ()
 writeGames gameData = do
   let (contents, gameErrorCounts) = foldGames gameData
   writeCsv contents
@@ -32,7 +32,7 @@ writeGames gameData = do
   -- writeKeyCsv keyContents
   writeAccuracy gameErrorCounts
 
-foldGames :: [Maybe ([String], [Move])] -> (String, (Int, Int))
+foldGames :: [Maybe (KeyValMap, [Move])] -> (String, (Int, Int))
 foldGames games =
   let gameIndices = 1 : map (+1) gameIndices
       gameIds = map GameID gameIndices
@@ -41,7 +41,7 @@ foldGames games =
                 case game of
                   Nothing -> Nothing
                   Just (keys, moves) ->
-                    Just (foldKeys keys
+                    Just (formatKeys gameId keys
                            ++ (foldMoves . formatMoves gameId) moves)) games gameIds
       totalLength = length rawKeyGameStrings
       gameStrings = unMaybeList rawKeyGameStrings
@@ -51,9 +51,6 @@ foldGames games =
 
 foldGameStrings :: [String] -> String
 foldGameStrings = foldr (++) ""
-
-foldKeys :: [String] -> String
-foldKeys keyLines = unlines $ map (\line -> ">" ++ line) keyLines
 
 foldGameKeys :: [String] -> String
 foldGameKeys = foldr (++) ""
@@ -65,7 +62,13 @@ writeCsv :: String -> IO ()
 writeCsv contents = do
   args <- getArgs
   let baseFileName = getFileName args
-  writeFile (baseFileName ++ ".csv") contents
+  writeFile (baseFileName ++ ".csv") (gameHeader ++ keyValHeader ++ contents)
+
+gameHeader :: String
+gameHeader = ">GameID,Outcome,WhiteName,BlackName,WhiteElo,BlackElo,Date\n"
+
+keyValHeader :: String
+keyValHeader = "<GameID,Turn,Ply,MovedPiece,SourceCol,SourceRow,DestCol,DestRow,CapturedPiece,PromotionPiece,CheckState,CastleSide\n"
 
 writeGameCsv :: String -> IO ()
 writeGameCsv contents = do

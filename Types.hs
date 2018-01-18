@@ -49,3 +49,5 @@ data GameID = GameID Int
 
 type Turn = Color
 type PieceMap = Map ColoredPiece [Cell]
+
+data KeyValMap = KeyValMap (Map String String)

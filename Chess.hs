@@ -30,7 +30,7 @@ isScore _ = False
 cleanGames :: [[String]] -> [[String]]
 cleanGames = map $ dropWhile (\ gameLine -> gameLine == "")
 
-runGame :: [String] -> Maybe ([String], [Move])
+runGame :: [String] -> Maybe (KeyValMap, [Move])
 runGame contents =
   parseKeys contents >>=
   (\ (keys, body) ->
