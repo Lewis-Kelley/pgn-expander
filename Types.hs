@@ -25,9 +25,9 @@ data ColoredPiece = ColoredPiece Color Piece
 
 type Promotion = Maybe Piece
 
-data Move = BasicMove GameID ColoredPiece Cell Cell Promotion CheckState
-          | TakingMove GameID ColoredPiece ColoredPiece Cell Cell Promotion CheckState
-          | CastleMove GameID CastleSide CheckState
+data Move = BasicMove GameID Ply ColoredPiece Cell Cell Promotion CheckState
+          | TakingMove GameID Ply ColoredPiece ColoredPiece Cell Cell Promotion CheckState
+          | CastleMove GameID Ply CastleSide CheckState
   deriving Show
 
 data SemiMove = SemiBasicMove Piece SemiCell Cell Promotion CheckState
@@ -38,7 +38,10 @@ data SemiMove = SemiBasicMove Piece SemiCell Cell Promotion CheckState
 data CastleSide = QueenSide | KingSide
   deriving (Eq, Show)
 
-data GameState = GameState Turn [[ColoredPiece]] PieceMap
+data GameState = GameState Turn Ply [[ColoredPiece]] PieceMap
+  deriving (Show)
+
+data Ply = Ply Int
   deriving (Show)
 
 data GameID = GameID Int

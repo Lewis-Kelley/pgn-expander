@@ -9,28 +9,28 @@ formatMoves :: [Move] -> [String]
 formatMoves = map formatMoveType
 
 formatMoveType :: Move -> String
-formatMoveType (BasicMove gameId piece origin destination
+formatMoveType (BasicMove gameId ply piece origin destination
                  promotion checkState) =
-  formatMove gameId piece origin destination Nothing
+  formatMove gameId ply piece origin destination Nothing
   promotion checkState Nothing
-formatMoveType (TakingMove gameId piece takenPiece origin destination
+formatMoveType (TakingMove gameId ply piece takenPiece origin destination
                  promotion checkState) =
-  formatMove gameId piece origin destination (Just takenPiece)
+  formatMove gameId ply piece origin destination (Just takenPiece)
   promotion checkState Nothing
 --FIXME Once we have turn information
-formatMoveType (CastleMove gameId KingSide checkState) =
-  formatMove gameId (ColoredPiece White King) (4, 0) (6, 0) Nothing
+formatMoveType (CastleMove gameId ply KingSide checkState) =
+  formatMove gameId ply (ColoredPiece White King) (4, 0) (6, 0) Nothing
   Nothing checkState (Just KingSide)
-formatMoveType (CastleMove gameId QueenSide checkState) =
-  formatMove gameId (ColoredPiece White King) (4, 0) (2, 0) Nothing
+formatMoveType (CastleMove gameId ply QueenSide checkState) =
+  formatMove gameId ply (ColoredPiece White King) (4, 0) (2, 0) Nothing
   Nothing checkState (Just QueenSide)
 
-formatMove :: GameID -> ColoredPiece -> Cell -> Cell -> Maybe ColoredPiece
+formatMove :: GameID -> Ply -> ColoredPiece -> Cell -> Cell -> Maybe ColoredPiece
   -> Promotion -> CheckState -> Maybe CastleSide -> String
-formatMove gameId movedPiece origin destination takenPiece promotion checkState castleSide =
+formatMove gameId ply movedPiece origin destination takenPiece promotion checkState castleSide =
   formatGameId gameId ++ "," ++
   -- Turn
-  -- Ply
+  formatPly ply ++ "," ++
   formatColoredPiece movedPiece ++ "," ++
   formatCell origin ++ "," ++
   formatCell destination ++ "," ++
@@ -41,6 +41,9 @@ formatMove gameId movedPiece origin destination takenPiece promotion checkState 
 
 formatGameId :: GameID -> String
 formatGameId (GameID idNum) = show idNum
+
+formatPly :: Ply -> String
+formatPly (Ply plyNum) = show plyNum
 
 formatCell :: Cell -> String
 formatCell (row, col) =

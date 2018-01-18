@@ -13,7 +13,7 @@ pieceColorAtPos state position =
     ColoredPiece color _ -> Just color
 
 pieceAtPos :: GameState -> Cell -> ColoredPiece
-pieceAtPos (GameState _ board _) (col, row) =
+pieceAtPos (GameState _ _ board _) (col, row) =
   (board !! row) !! col
 
 validDestination :: GameState -> Color -> Cell -> Bool
