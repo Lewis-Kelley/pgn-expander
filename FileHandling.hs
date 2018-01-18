@@ -19,44 +19,51 @@ getPgnContents = do
 
 getFileName :: [String] -> String
 getFileName args = do
-  if (length args) /= 1
+  if (length args) < 1
     then error "Usage: ./Chess <input pgn without extension>"
     else args !! 0
 
 
 writeGames :: [Maybe ([String], [Move])] -> IO ()
 writeGames gameData = do
-  let (keyContents, gameContents, gameErrorCounts) = foldGames gameData
-  writeGameCsv gameContents
-  writeKeyCsv keyContents
+  let (contents, gameErrorCounts) = foldGames gameData
+  writeCsv contents
+  -- writeGameCsv gameContents
+  -- writeKeyCsv keyContents
   writeAccuracy gameErrorCounts
 
-foldGames :: [Maybe ([String], [Move])] -> (String, String, (Int, Int))
+foldGames :: [Maybe ([String], [Move])] -> (String, (Int, Int))
 foldGames games =
-  let keyGameStringTuples =
+  let rawKeyGameStrings =
         map (\ game ->
                 case game of
                   Nothing -> Nothing
                   Just (keys, moves) ->
-                    Just (foldKeys keys,
-                           (foldMoves . formatMoves) moves)) games
-      (keyStrings, gameStrings) = unzip $ unMaybeList keyGameStringTuples
-      totalLength = length keyGameStringTuples
+                    Just (foldKeys keys
+                           ++ (foldMoves . formatMoves) moves)) games
+      totalLength = length rawKeyGameStrings
+      gameStrings = unMaybeList rawKeyGameStrings
       finalLength = length gameStrings
   in
-    (foldGameKeys keyStrings, foldGameStrings gameStrings, (totalLength, finalLength))
+    (foldGameStrings gameStrings, (totalLength, finalLength))
 
 foldGameStrings :: [String] -> String
 foldGameStrings = foldr (++) ""
 
 foldKeys :: [String] -> String
-foldKeys = unlines
+foldKeys keyLines = unlines $ map (\line -> ">" ++ line) keyLines
 
 foldGameKeys :: [String] -> String
 foldGameKeys = foldr (++) ""
 
 foldMoves :: [String] -> String
-foldMoves = unlines
+foldMoves moveLines = unlines $ map (\ line -> "<" ++ line) moveLines
+
+writeCsv :: String -> IO ()
+writeCsv contents = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ ".csv") contents
 
 writeGameCsv :: String -> IO ()
 writeGameCsv contents = do
