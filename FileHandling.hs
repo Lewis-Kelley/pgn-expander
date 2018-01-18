@@ -7,6 +7,7 @@ import System.IO
 
 import OutputFormatting
 import Types
+import Util
 
 getPgnContents :: IO Text
 getPgnContents = do
@@ -24,42 +25,55 @@ getFileName args = do
 
 
 writeGames :: [Maybe ([String], [Move])] -> IO ()
-writeGames = writeEgn . foldGames
+writeGames gameData = do
+  let (keyContents, gameContents, gameErrorCounts) = foldGames gameData
+  writeGameCsv gameContents
+  writeKeyCsv keyContents
+  writeAccuracy gameErrorCounts
 
-foldGames :: [Maybe ([String], [Move])] -> String
+foldGames :: [Maybe ([String], [Move])] -> (String, String, (Int, Int))
 foldGames games =
-  let gameStrings =
+  let keyGameStringTuples =
         map (\ game ->
                 case game of
                   Nothing -> Nothing
                   Just (keys, moves) ->
-                    Just $ foldGame keys $ formatMoves moves) games
+                    Just (foldKeys keys,
+                           (foldMoves . formatMoves) moves)) games
+      (keyStrings, gameStrings) = unzip $ unMaybeList keyGameStringTuples
+      totalLength = length keyGameStringTuples
+      finalLength = length gameStrings
   in
-    foldGameStrings gameStrings
+    (foldGameKeys keyStrings, foldGameStrings gameStrings, (totalLength, finalLength))
 
-foldGameStrings :: [Maybe String] -> String
-foldGameStrings gameStrings =
-  let (folded, totalErrors) =
-        foldr (\ game (rest, errCount) ->
-                  case game of
-                    Nothing -> (rest, errCount + 1)
-                    Just gameString ->
-                      (gameString ++ "======\n" ++ rest, errCount))
-        ("", 0) gameStrings
-  in
-    "ERRORS: " ++ (show totalErrors) ++ "\n\n" ++ folded
-
-foldGame :: [String] -> [String] -> String
-foldGame keys moves = (foldKeys keys) ++ "\n" ++ (foldMoves moves)
+foldGameStrings :: [String] -> String
+foldGameStrings = foldr (++) ""
 
 foldKeys :: [String] -> String
 foldKeys = unlines
 
+foldGameKeys :: [String] -> String
+foldGameKeys = foldr (++) ""
+
 foldMoves :: [String] -> String
 foldMoves = unlines
 
-writeEgn :: String -> IO ()
-writeEgn contents = do
+writeGameCsv :: String -> IO ()
+writeGameCsv contents = do
   args <- getArgs
   let baseFileName = getFileName args
   writeFile (baseFileName ++ ".csv") contents
+
+writeKeyCsv :: String -> IO ()
+writeKeyCsv contents = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ "_keys.csv") contents
+
+writeAccuracy :: (Int, Int) -> IO ()
+writeAccuracy (totalGames, goodGames) = do
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ "_info.txt")
+    ("Total: " ++ show totalGames
+     ++ "\nErrors: " ++ show (totalGames - goodGames))

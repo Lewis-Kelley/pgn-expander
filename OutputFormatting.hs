@@ -36,7 +36,7 @@ formatMove gameId turn ply movedPiece origin destination takenPiece promotion ch
   formatTakenPiece takenPiece ++ "," ++
   formatPromotion promotion ++ "," ++
   formatCheckState checkState ++ "," ++
-  formatCastleSide castleSide ++ "\n"
+  formatCastleSide castleSide
 
 formatGameId :: GameID -> String
 formatGameId (GameID idNum) = show idNum
