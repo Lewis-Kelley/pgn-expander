@@ -6,13 +6,13 @@ import Board
 import Types
 
 updateState :: GameState -> Move -> GameState
-updateState lastState (BasicMove _ _ piece origin destination promotion _) =
+updateState lastState (BasicMove _ _ _ piece origin destination promotion _) =
   let unpromotedState =
         movePiece lastState piece origin destination
       promotedState =
         promoteIfNeeded unpromotedState destination promotion
   in nextTurn promotedState
-updateState lastState (TakingMove _ _ piece takenPiece origin destination promotion _) =
+updateState lastState (TakingMove _ _ _ piece takenPiece origin destination promotion _) =
   let pieceTakenState =
         removePiece lastState destination takenPiece
       unpromotedState =
@@ -20,7 +20,7 @@ updateState lastState (TakingMove _ _ piece takenPiece origin destination promot
       promotedState =
         promoteIfNeeded unpromotedState destination promotion
   in nextTurn promotedState
-updateState lastState (CastleMove _ _ side _) =
+updateState lastState (CastleMove _ _ _ side _) =
   nextTurn $ castleUpdate lastState side
 
 promoteIfNeeded :: GameState -> Cell -> Promotion -> GameState

@@ -78,12 +78,13 @@ followMove gameId state (SemiBasicMove piece origin
                           destination promotion checkState) =
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
+      turn = getTurn state
       ply = getPly state
   in
     choosePieceOrigin origin originOptions >>=
     (\ fullOrigin ->
         let fullmove =
-              BasicMove gameId ply coloredPiece fullOrigin destination promotion checkState
+              BasicMove gameId turn ply coloredPiece fullOrigin destination promotion checkState
         in
           Just (fullmove, updateState state fullmove))
 
@@ -92,19 +93,21 @@ followMove gameId state (SemiTakingMove piece origin
   let coloredPiece = getColoredPiece state piece
       originOptions = getValidPieceOrigins state coloredPiece destination
       takenPiece = getTakenPiece state destination
+      turn = getTurn state
       ply = getPly state
   in
     choosePieceOrigin origin originOptions >>=
     (\ fullOrigin ->
        let fullmove =
-              (TakingMove gameId ply coloredPiece takenPiece fullOrigin
+              (TakingMove gameId turn ply coloredPiece takenPiece fullOrigin
                 destination promotion checkState)
         in
           Just (fullmove, updateState state fullmove))
 
 followMove gameId state (SemiCastleMove castleSide checkState) =
-  let ply = getPly state
-      move = (CastleMove gameId ply castleSide checkState)
+  let turn = getTurn state
+      ply = getPly state
+      move = (CastleMove gameId turn ply castleSide checkState)
   in
     Just (move, updateState state move)
 
@@ -115,6 +118,9 @@ showError state move originOptions =
 
 getColoredPiece :: GameState -> Piece -> ColoredPiece
 getColoredPiece (GameState turn _ _ _) piece = ColoredPiece turn piece
+
+getTurn :: GameState -> Turn
+getTurn (GameState turn _ _ _) = turn
 
 getPly :: GameState -> Ply
 getPly (GameState _ ply _ _) = ply

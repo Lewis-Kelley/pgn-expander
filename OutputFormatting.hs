@@ -9,27 +9,26 @@ formatMoves :: [Move] -> [String]
 formatMoves = map formatMoveType
 
 formatMoveType :: Move -> String
-formatMoveType (BasicMove gameId ply piece origin destination
+formatMoveType (BasicMove gameId turn ply piece origin destination
                  promotion checkState) =
-  formatMove gameId ply piece origin destination Nothing
+  formatMove gameId turn ply piece origin destination Nothing
   promotion checkState Nothing
-formatMoveType (TakingMove gameId ply piece takenPiece origin destination
+formatMoveType (TakingMove gameId turn ply piece takenPiece origin destination
                  promotion checkState) =
-  formatMove gameId ply piece origin destination (Just takenPiece)
+  formatMove gameId turn ply piece origin destination (Just takenPiece)
   promotion checkState Nothing
---FIXME Once we have turn information
-formatMoveType (CastleMove gameId ply KingSide checkState) =
-  formatMove gameId ply (ColoredPiece White King) (4, 0) (6, 0) Nothing
+formatMoveType (CastleMove gameId turn ply KingSide checkState) =
+  formatMove gameId turn ply (ColoredPiece turn King) (4, 0) (6, 0) Nothing
   Nothing checkState (Just KingSide)
-formatMoveType (CastleMove gameId ply QueenSide checkState) =
-  formatMove gameId ply (ColoredPiece White King) (4, 0) (2, 0) Nothing
+formatMoveType (CastleMove gameId turn ply QueenSide checkState) =
+  formatMove gameId turn ply (ColoredPiece turn King) (4, 0) (2, 0) Nothing
   Nothing checkState (Just QueenSide)
 
-formatMove :: GameID -> Ply -> ColoredPiece -> Cell -> Cell -> Maybe ColoredPiece
-  -> Promotion -> CheckState -> Maybe CastleSide -> String
-formatMove gameId ply movedPiece origin destination takenPiece promotion checkState castleSide =
+formatMove :: GameID -> Turn -> Ply -> ColoredPiece -> Cell -> Cell
+  -> Maybe ColoredPiece -> Promotion -> CheckState -> Maybe CastleSide -> String
+formatMove gameId turn ply movedPiece origin destination takenPiece promotion checkState castleSide =
   formatGameId gameId ++ "," ++
-  -- Turn
+  formatTurn turn ++ "," ++
   formatPly ply ++ "," ++
   formatColoredPiece movedPiece ++ "," ++
   formatCell origin ++ "," ++
@@ -41,6 +40,13 @@ formatMove gameId ply movedPiece origin destination takenPiece promotion checkSt
 
 formatGameId :: GameID -> String
 formatGameId (GameID idNum) = show idNum
+
+formatTurn :: Turn -> String
+formatTurn = formatColor
+
+formatColor :: Color -> String
+formatColor White = "w"
+formatColor Black = "b"
 
 formatPly :: Ply -> String
 formatPly (Ply plyNum) = show plyNum
@@ -74,10 +80,6 @@ formatColoredPiece (ColoredPiece White Queen) = "Q"
 formatColoredPiece (ColoredPiece Black Queen) = "q"
 formatColoredPiece (ColoredPiece White King) = "K"
 formatColoredPiece (ColoredPiece Black King) = "k"
-
-formatColor :: Color -> String
-formatColor White = "white"
-formatColor Black = "black"
 
 formatPiece :: Piece -> String
 formatPiece Pawn = "pawn"
