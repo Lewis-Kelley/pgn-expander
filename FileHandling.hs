@@ -1,5 +1,6 @@
 module FileHandling where
 
+import System.Environment
 import Data.Text (Text)
 import qualified Data.Text.IO as T (hGetContents)
 import System.IO
@@ -9,11 +10,18 @@ import Types
 
 getPgnContents :: IO Text
 getPgnContents = do
-  putStrLn "Enter the name of the file to parse: "
-  fileName <- getLine
-  fileHandle <- openFile fileName ReadMode
+  args <- getArgs
+  let baseFileName = getFileName args
+  fileHandle <- openFile (baseFileName ++ ".pgn") ReadMode
   hSetEncoding fileHandle latin1
   T.hGetContents fileHandle
+
+getFileName :: [String] -> String
+getFileName args = do
+  if (length args) /= 1
+    then error "Usage: ./Chess <input pgn without extension>"
+    else args !! 0
+
 
 writeGames :: [Maybe ([String], [Move])] -> IO ()
 writeGames = writeEgn . foldGames
@@ -52,6 +60,6 @@ foldMoves = unlines
 
 writeEgn :: String -> IO ()
 writeEgn contents = do
-  putStrLn "Enter the name of the output file: "
-  fileName <- getLine
-  writeFile fileName contents
+  args <- getArgs
+  let baseFileName = getFileName args
+  writeFile (baseFileName ++ ".csv") contents
