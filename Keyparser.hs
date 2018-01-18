@@ -3,6 +3,7 @@ module Keyparser where
 import Parsing
 
 parseKeys :: [String] -> Maybe ([String], [String])
+parseKeys [] = Just ([], [])
 parseKeys pgn =
   if head pgn == "" then Just ([], tail pgn)
   else case parseKey $ head pgn of

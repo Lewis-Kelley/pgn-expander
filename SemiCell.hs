@@ -16,6 +16,7 @@ parseSemiRow :: String -> (Maybe Int, String)
 parseSemiRow = parseSemiCoord charToRow
 
 parseSemiCoord :: (Char -> Maybe Int) -> String -> (Maybe Int, String)
+parseSemiCoord _ [] = (Nothing, "")
 parseSemiCoord charToCoord moveString =
   case charToCoord $ head moveString of
     Nothing -> (Nothing, moveString)

@@ -50,7 +50,7 @@ getTaking moveString =
     Nothing -> Nothing
     Just (piece, afterPiece) ->
       let (origin, afterOrigin) = parseSemiCell afterPiece in
-        if head afterOrigin /= 'x' then Nothing
+        if null afterOrigin || head afterOrigin /= 'x' then Nothing
         else let afterTake = tail afterOrigin in
                if not $ isCell $ take 2 afterTake then Nothing
                else finishGetMove SemiTakingMove piece origin afterTake
